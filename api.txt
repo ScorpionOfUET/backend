@@ -1,0 +1,34 @@
+Category:
+	getAll
+	getbyId
+	creatCategory	
+	updateCategory
+	deleteCategory
+
+Order:
+	getAll
+	getById
+	creatOrder
+	updateOrder
+	deleteOrder
+	getOrderCount
+
+Product:
+	getAll
+	getById
+	createProduct
+	updateProduct
+	deleteProduct
+	getProductCount
+
+User:
+	jsonWebtoken
+	getAll
+	getCurrentUser
+	getById
+	login
+	updateUser
+	updatePassword
+	delete
+	getUserCount
+	register
