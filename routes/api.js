@@ -41,7 +41,7 @@ router.use((req,res,next) => {
 
          if(result.length == 0) {
             res.set('WWW-Authenticate', 'Basic realm="401"')
-            res.status(401).send('Username not found')
+            res.status(403).send('Username not found')
             return
          } else {
             bcrypt.compare(password, result[0].passwordHash, (err,hashCorrect) => {
@@ -52,11 +52,16 @@ router.use((req,res,next) => {
 
                if(hashCorrect == false) {
                   res.set('WWW-Authenticate', 'Basic realm="401"')
-                  res.status(401).send('Incorrect password')
+                  res.status(403).send('Incorrect password')
                   return
                }
                else {
                   req.userID = result[0]._id;
+                  req.isAdmin = result[0].isAdmin;
+                  if(req.method == "DELETE" || req.method == "PUT") if(req.isAdmin == false) {
+                     res.status(403).send("Invalid");
+                     return;
+                  }
                   return next();
                }
             })
@@ -72,7 +77,10 @@ router.use((req,res,next) => {
 
 router.get("/",(req,res) => {
 	console.log(req.userID);
-   res.send(req.userID);
+   res.send({
+      _id : req.userID,
+      isAdmin : req.isAdmin
+   });
 })
 
 router.post("/signup", (req,res) => {
@@ -110,6 +118,8 @@ router.post("/signup", (req,res) => {
    })
 })
 
+//CATEGORY
+
 router.get("/category", (req,res) => {
    db.collection('category').find({}).toArray((err,result) => {
       if(err) {
@@ -136,7 +146,10 @@ router.get("/category/:id", (req,res) => {
 
 router.post("/category/create", (req,res) => {
    db.collection('category').insert({
-      name: req.body.name
+      name: req.body.name,
+      color : req.body.color,
+      icon : req.body.icon,
+      image : req.body.image
    })
    .then(result => {
       res.send("Complete")
@@ -147,6 +160,34 @@ router.post("/category/create", (req,res) => {
       return
    })
 })
+
+router.delete("/category/:id", (req,res) => {
+
+   db.collection('category').deleteOne({
+      _id : ObjectId(req.params.id);
+   })
+   .then(result => {
+      res.send(result);
+   })
+   .catch(err => {
+      res.status(500).send(err);
+   })
+})
+
+router.put("/category/:id", (req,res) => {
+   db.collection('category').updateOne({
+      _id : ObjectId(req.params.id)
+   }, {
+      name : req.body.name,
+      color : req.body.color,
+      icon : req.body.icon,
+      image : req.body.image
+   })
+   .then(result => res.send(result));
+   .catch(err => res.status(500).send(err));
+})
+
+//PRODUCT
 
 router.get("/product", (req,res) => {
    db.collection('product').find({}).toArray((err,result) => {
@@ -192,6 +233,39 @@ router.post("/product/create", (req,res) => {
    .catch(err => res.status(500).send(err));
 })
 
+router.delete("/product/:id", (req,res) => {
+   db.collection('product').deleteOne({
+      _id : ObjectId(req.params.id)
+   })
+   .then(result => {
+      res.send(result);
+   })
+   .catch(err => {
+      res.status(500).send(err);
+   })
+})
+
+router.put("/product/:id", (req,res) => {
+   db.collection('product').updateOne({
+      _id : ObjectId(req.params.id)
+   }, {
+      name : req.body.name,
+      description : req.body.description,
+      richDescription : req.body.richDescription,
+      image : req.body.image,
+      images : req.body.images,
+      brand : req.body.brand,
+      price : req.body.price,
+      category : req.body.category,
+      countInStock: req.body.countInStock,
+      rating : 0,
+      isFeatured : req.body.isFeatured,
+      dateCreated : new Date()
+   })
+})
+
+//ORDER
+
 router.get("/order", (req,res) => {
    db.collection('order').find({user : req.userID}).toArray((err, result) => {
       if(err) {
@@ -203,7 +277,9 @@ router.get("/order", (req,res) => {
 })
 
 router.get("/order/:id", (req,res) => {
-   db.collection('order').find({user : req.userID, _id : ObjectId(req.params.id)}).toArray((err,result) => {
+   db.collection('order').find({
+      user : req.userID, 
+      _id : ObjectId(req.params.id)}).toArray((err,result) => {
       if(err) {
          res.status(500).send(err);
       }
@@ -231,6 +307,30 @@ router.post("/order/create", (req,res) => {
    .catch(err => res.status(500).send(err));
 })
 
+router.delete("/order/:id", (req,res) => {
+   db.collection('order').deleteOne({
+      _id :ObjectId(req.params.id)
+   })
+   .then(result => {
+      res.send(result);
+   })
+   .catch(err => res.status(500).send(500));
+})
 
+router.put("/order/:id", (req,res) => {
+   db.collection('order').updateOne({
+      _id : ObjectId(req.params.id)
+   }, {
+      orderItems : req.body.orderItems,
+      shippingAddress1 : req.body.shippingAddress1,
+      shippingAddress2 : req.body.shippingAddress2,
+      city : req.body.city,
+      zip : req.body.zip,
+      country : req.body.country,
+      phone : req.body.phone,
+      status : req.body.status,
+      totalPrice : req.body.totalPrice
+   })
+})
 
 module.exports = router;

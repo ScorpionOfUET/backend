@@ -1,7 +1,7 @@
 var User = require('./User');
 
 class Order {
-	constructor() {
+	constructor(params, body) {
 		this._id = '';
 		this.orderItems = [];
 		this.shippingAddress1 = '';
