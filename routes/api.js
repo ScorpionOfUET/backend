@@ -200,6 +200,7 @@ router.get("/product/:id", (req,res) => {
 })
 
 router.post("/product/create", (req,res) => {
+   console.log(req.body.image);
    db.collection('product').insert({
       name : req.body.name,
       description : req.body.description,
