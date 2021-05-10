@@ -18,10 +18,9 @@ client.connect(err => {
 var Product = require('./schemas/Product');
 
 // Main
-var noAuthPath = ['/signup'];
-
+var noAuthPath = ['/signup', '/product'];
 router.use((req,res,next) => {
-   if(noAuthPath.indexOf(req.url) != -1) return next();
+   for(var i=0;i<noAuthPath.length;i++) if(req.url.startsWith(noAuthPath[i])) return next();
 	if(db == null) {
       res.status(500).send('Server initializing. Pls wait.')
       return;
