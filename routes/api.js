@@ -9,8 +9,8 @@ const uri = "mongodb+srv://Viet:" + process.env.DBPASSWORD + "@mobile.hreew.mong
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 var db = null;
 client.connect(err => {
-   if(err) return;
    console.log(err);
+   if(err) return;
    db = client.db("Mobile");
    console.log("Connected");
 });
