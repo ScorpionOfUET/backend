@@ -177,7 +177,7 @@ router.post("/order/delete/:id", (req,res) => {
 })
 
 router.get("/product", (req,res) => {
-   db.collection('product').query({}).toArray((err,result) => {
+   db.collection('product').find({}).toArray((err,result) => {
       if(err) {
          res.status(500).send("DB error");
          return
@@ -188,7 +188,7 @@ router.get("/product", (req,res) => {
 })
 
 router.get("/product/:id", (req,res) => {
-   db.collection('product').query({_id:ObjectId(req.params.id)}).toArray((err,result) => {
+   db.collection('product').find({_id:ObjectId(req.params.id)}).toArray((err,result) => {
       if(err) {
          res.status(500).send("DB error");
          return
