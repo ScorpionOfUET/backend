@@ -164,7 +164,7 @@ router.post("/category/create", (req,res) => {
 router.delete("/category/:id", (req,res) => {
 
    db.collection('category').deleteOne({
-      _id : ObjectId(req.params.id);
+      _id : ObjectId(req.params.id)
    })
    .then(result => {
       res.send(result);
@@ -183,7 +183,7 @@ router.put("/category/:id", (req,res) => {
       icon : req.body.icon,
       image : req.body.image
    })
-   .then(result => res.send(result));
+   .then(result => res.send(result))
    .catch(err => res.status(500).send(err));
 })
 
