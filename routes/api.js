@@ -18,9 +18,11 @@ client.connect(err => {
 var Product = require('./schemas/Product');
 
 // Main
-var noAuthPath = ['/signup', '/product'];
+var noAuthPath = ['POST /signup', 'GET /product', 'GET /category'];
 router.use((req,res,next) => {
-   for(var i=0;i<noAuthPath.length;i++) if(req.url.startsWith(noAuthPath[i])) return next();
+   var path = req.method + " " + req.url;
+   console.log(path);
+   for(var i=0;i<noAuthPath.length;i++) if(path.startsWith(noAuthPath[i])) return next();
 	if(db == null) {
       res.status(500).send('Server initializing. Pls wait.')
       return;
@@ -144,36 +146,6 @@ router.post("/category/create", (req,res) => {
       res.status(401).send(err)
       return
    })
-})
-
-router.get("/order", (req,res) => {
-   db.collection('order').find({user : req.userID}).toArray((err, result) => {
-      if(err) {
-         res.status(500).send('DB error');
-         return
-      }
-
-      res.send(result);
-   })
-})
-
-router.get("/order/:id", (req,res) => {
-   db.collection('order').find({user : req.userID, _id : ObjectId(req.params.id)}).toArray((err, result) => {
-      if(err) {
-         res.status(500).send('DB error');
-         return
-      }
-
-      res.send(result);
-   })
-})
-
-router.post("/order/create", (req,res) => {
-
-})
-
-router.post("/order/delete/:id", (req,res) => {
-
 })
 
 router.get("/product", (req,res) => {
