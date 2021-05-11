@@ -17,6 +17,19 @@ client.connect(err => {
 
 var Product = require('./schemas/Product');
 
+function imageProcesser(image) {
+   return image;
+}
+
+function imagesProceser(images) {
+   for(var i = 0;i < images.length;i++) images[i] = imageProcesser(images[i]);
+   return images;
+} 
+
+function cleanUp() {
+
+}
+
 // Main
 var noAuthPath = ['POST /signup', 'GET /product', 'GET /category'];
 router.use((req,res,next) => {
@@ -58,7 +71,7 @@ router.use((req,res,next) => {
                else {
                   req.userID = result[0]._id;
                   req.isAdmin = result[0].isAdmin;
-                  if(req.method == "DELETE" || req.method == "PUT") if(req.isAdmin == false) {
+                  if(req.method == "DELETE" || req.method == "PUT" || path.startsWith("GET /user")) if(req.isAdmin == false) {
                      res.status(403).send("Invalid");
                      return;
                   }
@@ -106,7 +119,14 @@ router.post("/signup", (req,res) => {
          db.collection('user').insertOne({
             name : req.body.name,
             email : req.body.email,
-            passwordHash : hash
+            passwordHash : hash,
+            street : req.body.street,
+            apartment : req.body.apartment,
+            city : req.body.city,
+            zip : req.body.zip,
+            country : req.body.country,
+            phone : req.body.phone,
+            isAdmin : false
          })
          .then(result => {
             res.send(result);
@@ -149,7 +169,7 @@ router.post("/category/create", (req,res) => {
       name: req.body.name,
       color : req.body.color,
       icon : req.body.icon,
-      image : req.body.image
+      image : imageProcesser(req.body.image)
    })
    .then(result => {
       res.send("Complete")
@@ -181,7 +201,7 @@ router.put("/category/:id", (req,res) => {
       name : req.body.name,
       color : req.body.color,
       icon : req.body.icon,
-      image : req.body.image
+      image : imageProcesser(req.body.image)
    })
    .then(result => res.send(result))
    .catch(err => res.status(500).send(err));
@@ -217,8 +237,8 @@ router.post("/product/create", (req,res) => {
       name : req.body.name,
       description : req.body.description,
       richDescription : req.body.richDescription,
-      image : req.body.image,
-      images : req.body.images,
+      image : imageProcesser(req.body.image),
+      images : imagesProceser(req.body.images),
       brand : req.body.brand,
       price : req.body.price,
       category : req.body.category,
@@ -252,8 +272,8 @@ router.put("/product/:id", (req,res) => {
       name : req.body.name,
       description : req.body.description,
       richDescription : req.body.richDescription,
-      image : req.body.image,
-      images : req.body.images,
+      image : imageProcesser(req.body.image),
+      images : imagesProceser(req.body.images),
       brand : req.body.brand,
       price : req.body.price,
       category : req.body.category,
@@ -265,7 +285,6 @@ router.put("/product/:id", (req,res) => {
 })
 
 //ORDER
-
 router.get("/order", (req,res) => {
    db.collection('order').find({user : req.userID}).toArray((err, result) => {
       if(err) {
@@ -332,5 +351,24 @@ router.put("/order/:id", (req,res) => {
       totalPrice : req.body.totalPrice
    })
 })
+
+//USER
+router.get("/user", (req,res) => {
+   db.collection('user').find({}).toArray((err,result) => {
+      if(err) res.status(500).send(err);
+      res.send(result);
+   })
+})
+
+router.get("/user/:id", (req,res) => {
+   db.collection('user').find({
+      _id:ObjectId(req.params.id)
+   }).toArray((err,result) => {
+      if(err) res.status(500).send(err);
+      res.send(result);
+   })
+})
+
+
 
 module.exports = router;
