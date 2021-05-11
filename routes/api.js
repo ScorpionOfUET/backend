@@ -32,6 +32,7 @@ function cleanUp() {
 
 // Main
 var noAuthPath = ['POST /signup', 'GET /product', 'GET /category'];
+var adminOnly = [];
 router.use((req,res,next) => {
    var path = req.method + " " + req.url;
    console.log(path);
