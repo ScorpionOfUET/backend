@@ -37,6 +37,7 @@ var adminOnly = [];
 
 router.use((req,res,next) => {
    var path = req.method + " " + req.url;
+   console.log(path);
    for(var i=0;i<noAuthPath.length;i++) if(path.startsWith(noAuthPath[i])) return next();
 	if(db == null) {
       res.status(500).send('Server initializing. Pls wait.')
