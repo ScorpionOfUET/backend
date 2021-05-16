@@ -358,9 +358,7 @@ router.post("/signup", (req,res) => {
             email : req.body.email,
             passwordHash : hash,
             street : req.body.street,
-//            apartment : req.body.apartment,
             city : req.body.city,
-//            zip : req.body.zip,
             country : req.body.country,
             phone : req.body.phone,
             isAdmin : false
@@ -407,10 +405,6 @@ router.post("/login", (req,res) => {
                else {
                   req.userID = result[0]._id;
                   req.isAdmin = result[0].isAdmin;
-                  if(req.method == "DELETE" || req.method == "PUT" || path.startsWith("GET /user")) if(req.isAdmin == false) {
-                     res.status(403).send("Invalid");
-                     return;
-                  }
                   const token = jwt.sign({_id : result[0]._id, isAdmin : result[0].isAdmin}, process.env.SECRET);
                   res.send(token);
                   return;
