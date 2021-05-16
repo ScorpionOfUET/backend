@@ -330,7 +330,6 @@ router.post("/signup", (req,res) => {
             passwordHash : hash,
             street : req.body.street,
             city : req.body.city,
-            country : req.body.country,
             phone : req.body.phone,
             isAdmin : false
          })
@@ -440,9 +439,8 @@ router.put("/user/info", (req,res) => {
       _id : ObjectId(req._id)
    }, {
       name : req.body.name,
-      street : req.body.street,
+      address : req.body.address,
       city : req.body.city,
-      country : req.body.country,
       phone : req.body.phone,
    })
    .then(result => {
