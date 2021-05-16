@@ -350,6 +350,9 @@ router.post("/login", (req,res) => {
    const login = req.body.email
    const password = req.body.password
 
+   console.log(login)
+   console.log(password)
+
    if (login && password) {
       db.collection('user').find({email : login}).toArray((err,result) => {
          if(err) {
