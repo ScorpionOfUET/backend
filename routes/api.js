@@ -1,6 +1,7 @@
-var express = require('express');
-var router = express.Router();
-var bcrypt = require('bcrypt');
+const express = require('express');
+const jwt = require('jsonwebtoken');
+const router = express.Router();
+const bcrypt = require('bcrypt');
 
 // DB related init
 const MongoClient = require('mongodb').MongoClient;
@@ -33,6 +34,7 @@ function cleanUp() {
 // Main
 var noAuthPath = ['POST /signup', 'GET /product', 'GET /category'];
 var adminOnly = [];
+/*
 router.use((req,res,next) => {
    var path = req.method + " " + req.url;
    console.log(path);
@@ -44,6 +46,8 @@ router.use((req,res,next) => {
 
    const b64auth = (req.headers.authorization || '').split(' ')[1] || ''
    const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':')
+
+   console.log(req.headers.authorization);
 
    if (login && password) {
       db.collection('user').find({email : login}).toArray((err,result) => {
@@ -88,6 +92,7 @@ router.use((req,res,next) => {
       return;
    }
 })
+*/
 
 router.get("/",(req,res) => {
 	console.log(req.userID);
@@ -95,48 +100,6 @@ router.get("/",(req,res) => {
       _id : req.userID,
       isAdmin : req.isAdmin
    });
-})
-
-router.post("/signup", (req,res) => {
-   db.collection('user').find({email:req.body.email}).toArray((err,result) => {
-      console.log(err);
-      if(err) {
-         res.status(500).send(err)
-         return
-      }
-
-      if(result.length == 1) {
-         res.set('WWW-Authenticate', 'Basic realm="401"')
-         res.status(401).send('User exsist')
-         return
-      }
-
-      bcrypt.hash(req.body.password, 12, (err,hash) => {
-         if(err) {
-            res.status(500).send('Hash error')
-            return
-         }
-
-         db.collection('user').insertOne({
-            name : req.body.name,
-            email : req.body.email,
-            passwordHash : hash,
-            street : req.body.street,
-            apartment : req.body.apartment,
-            city : req.body.city,
-            zip : req.body.zip,
-            country : req.body.country,
-            phone : req.body.phone,
-            isAdmin : false
-         })
-         .then(result => {
-            res.send(result);
-         })
-         .catch(err => {
-            res.status(500).send(err);
-         })
-      })
-   })
 })
 
 //CATEGORY
@@ -370,6 +333,98 @@ router.get("/user/:id", (req,res) => {
    })
 })
 
+router.post("/signup", (req,res) => {
+   db.collection('user').find({email:req.body.email}).toArray((err,result) => {
+      console.log(err);
+      if(err) {
+         res.status(500).send(err)
+         return
+      }
+
+      if(result.length == 1) {
+         res.set('WWW-Authenticate', 'Basic realm="401"')
+         res.status(401).send('User exsist')
+         return
+      }
+
+      bcrypt.hash(req.body.password, 12, (err,hash) => {
+         if(err) {
+            res.status(500).send('Hash error')
+            return
+         }
+
+         db.collection('user').insertOne({
+            name : req.body.name,
+            email : req.body.email,
+            passwordHash : hash,
+            street : req.body.street,
+//            apartment : req.body.apartment,
+            city : req.body.city,
+//            zip : req.body.zip,
+            country : req.body.country,
+            phone : req.body.phone,
+            isAdmin : false
+         })
+         .then(result => {
+            res.send(result);
+         })
+         .catch(err => {
+            res.status(500).send(err);
+         })
+      })
+   })
+})
+
+
+router.post("/login", (req,res) => {
+   const login = req.body.email
+   const password = req.body.password
+
+   if (login && password) {
+      db.collection('user').find({email : login}).toArray((err,result) => {
+         if(err) {
+            res.set('WWW-Authenticate', 'Basic realm="401"')
+            res.status(401).send(err)
+            return
+         }
+
+         if(result.length == 0) {
+            res.set('WWW-Authenticate', 'Basic realm="401"')
+            res.status(403).send('Username not found')
+            return
+         } else {
+            bcrypt.compare(password, result[0].passwordHash, (err,hashCorrect) => {
+               if(err) {
+                  res.status(500).send('Decryption fault')
+                  return
+               }
+
+               if(hashCorrect == false) {
+                  res.set('WWW-Authenticate', 'Basic realm="401"')
+                  res.status(403).send('Incorrect password')
+                  return
+               }
+               else {
+                  req.userID = result[0]._id;
+                  req.isAdmin = result[0].isAdmin;
+                  if(req.method == "DELETE" || req.method == "PUT" || path.startsWith("GET /user")) if(req.isAdmin == false) {
+                     res.status(403).send("Invalid");
+                     return;
+                  }
+                  const token = jwt.sign({_id : result[0]._id, isAdmin : result[0].isAdmin}, process.env.SECRET);
+                  res.send(token);
+                  return;
+               }
+            })
+         }
+      })
+   }
+   else {
+      res.set('WWW-Authenticate', 'Basic realm="401"')
+      res.status(401).send('Authentication required.')
+      return;
+   }
+})
 
 
 module.exports = router;
