@@ -53,7 +53,7 @@ router.use((req,res,next) => {
          }
          req._id = data._id;
          req.isAdmin = data.isAdmin;
-         if(req.method == "PUT" || req.method == "DELETE") if(req.isAdmin == false) res.status(403).send(err);
+         if((req.method == "PUT" && req.url != "/user") || req.method == "DELETE") if(req.isAdmin == false) res.status(403).send(err);
          return next();
       })
    }
@@ -281,6 +281,10 @@ router.put("/order/:id", (req,res) => {
       status : req.body.status,
       totalPrice : req.body.totalPrice
    })
+   .then(result => {
+      res.send(result);
+   })
+   .catch(err => res.status(500).send(err));
 })
 
 //USER
@@ -392,11 +396,59 @@ router.post("/login", (req,res) => {
 
 router.get("/token", (req,res) => {
    db.collection('user').find({_id : ObjectId(req._id)}).toArray((err, result) => {
-      if(err) res.status(500).send(err);
+      if(err) {
+         res.status(500).send(err);
+         return
+      }
       result[0].passwordHash = undefined;
       res.send(result[0]);
    })
 })
 
+router.put("/user/password", (req,res) => {
+   db.collection('user').find({_id : ObjectId(req._id)}).toArray((err,result) => {
+      if(err) res.status(500).send(err);
+      var user = result[0];
+      bcrypt.compare(req.body.oldPassword, user.passwordHash, (err,result) => {
+         if(err) {
+            res.status(500).send(err);
+            return
+         }
+         if(result == false) {
+            res.send("Wrong password")
+            return
+         }
+         bcrypt.hash(req.body.newPassword, 12, (err,hash) => {
+            if(err) res.status(500).send(err);
+
+            db.collection('user').updateOne({
+               _id : ObjectId(req._id)
+            }, {
+               passwordHash : hash
+            })
+            .then(result => {
+               res.send(result);
+            })
+            .catch(err => res.status(500).send(err));
+         })
+      })
+   })
+})
+
+router.put("/user/info", (req,res) => {
+   db.collection('user').updateOne({
+      _id : ObjectId(req._id)
+   }, {
+      name : req.body.name,
+      street : req.body.street,
+      city : req.body.city,
+      country : req.body.country,
+      phone : req.body.phone,
+   })
+   .then(result => {
+      res.send(result);
+   })
+   .catch(err => res.status(500).send(err));
+})
 
 module.exports = router;
