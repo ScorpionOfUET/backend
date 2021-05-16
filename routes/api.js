@@ -396,8 +396,11 @@ router.post("/login", (req,res) => {
 })
 
 router.get("/token", (req,res) => {
-   res.send(req._id);
+   db.collection('user').find({_id : req.userID}).toArray((err, result) => {
+      if(err) res.status(500).send(err);
+      result[0].passwordHash = undefined;
+      res.send(result[0]);
+   })
 })
-
 
 module.exports = router;
