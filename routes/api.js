@@ -32,9 +32,9 @@ function cleanUp() {
 }
 
 // Main
-var noAuthPath = ['POST /signup', 'GET /product', 'GET /category'];
+var noAuthPath = ['POST /signup', 'GET /product', 'GET /category, POST /login'];
 var adminOnly = [];
-/*
+
 router.use((req,res,next) => {
    var path = req.method + " " + req.url;
    console.log(path);
@@ -44,55 +44,25 @@ router.use((req,res,next) => {
       return;
    }
 
-   const b64auth = (req.headers.authorization || '').split(' ')[1] || ''
-   const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':')
+   const jwtToken = (req.headers.authorization || '').split(' ')[1] || ''
 
-   console.log(req.headers.authorization);
-
-   if (login && password) {
-      db.collection('user').find({email : login}).toArray((err,result) => {
+   if(jwtToken) {
+      jwt.verify(jwtToken, process.env.SECRET, (err,data) => {
          if(err) {
-            res.set('WWW-Authenticate', 'Basic realm="401"')
-            res.status(401).send(err)
-            return
+            res.status(403).send("Unauthorize");
+            return;
          }
 
-         if(result.length == 0) {
-            res.set('WWW-Authenticate', 'Basic realm="401"')
-            res.status(403).send('Username not found')
-            return
-         } else {
-            bcrypt.compare(password, result[0].passwordHash, (err,hashCorrect) => {
-               if(err) {
-                  res.status(500).send('Decryption fault')
-                  return
-               }
+         console.log(data);
 
-               if(hashCorrect == false) {
-                  res.set('WWW-Authenticate', 'Basic realm="401"')
-                  res.status(403).send('Incorrect password')
-                  return
-               }
-               else {
-                  req.userID = result[0]._id;
-                  req.isAdmin = result[0].isAdmin;
-                  if(req.method == "DELETE" || req.method == "PUT" || path.startsWith("GET /user")) if(req.isAdmin == false) {
-                     res.status(403).send("Invalid");
-                     return;
-                  }
-                  return next();
-               }
-            })
-         }
+         req._id = data._id;
+         req.isAdmin = data.isAdmin;
       })
    }
-   else {
-  	   res.set('WWW-Authenticate', 'Basic realm="401"')
-  	   res.status(401).send('Authentication required.')
-      return;
-   }
+
+   return next();
 })
-*/
+
 
 router.get("/",(req,res) => {
 	console.log(req.userID);
