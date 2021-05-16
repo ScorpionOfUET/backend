@@ -32,7 +32,7 @@ function cleanUp() {
 }
 
 // Main
-var noAuthPath = ['POST /signup', 'GET /product', 'GET /category, POST /login'];
+var noAuthPath = ['POST /signup', 'GET /product', 'GET /category', 'POST /login'];
 var adminOnly = [];
 
 router.use((req,res,next) => {
