@@ -37,7 +37,6 @@ var adminOnly = [];
 
 router.use((req,res,next) => {
    var path = req.method + " " + req.url;
-   console.log(path);
    for(var i=0;i<noAuthPath.length;i++) if(path.startsWith(noAuthPath[i])) return next();
 	if(db == null) {
       res.status(500).send('Server initializing. Pls wait.')
@@ -57,10 +56,12 @@ router.use((req,res,next) => {
 
          req._id = data._id;
          req.isAdmin = data.isAdmin;
+         if(req.method == "PUT" || req.method == "DELETE") if(req.isAdmin == false) res.status(403).send("Unauthorize");
+         return next();
       })
    }
 
-   return next();
+   res.status(403).send("Unauthorize");
 })
 
 
@@ -388,6 +389,10 @@ router.post("/login", (req,res) => {
       res.status(401).send('Authentication required.')
       return;
    }
+})
+
+router.get("/token", (req,res) => {
+   res.send(req._id);
 })
 
 
