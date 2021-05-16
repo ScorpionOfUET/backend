@@ -45,31 +45,26 @@ router.use((req,res,next) => {
    }
 
    const jwtToken = (req.headers.authorization || '').split(' ')[1] || ''
-
    if(jwtToken) {
       jwt.verify(jwtToken, process.env.SECRET, (err,data) => {
          if(err) {
-            res.status(403).send("Unauthorize");
+            res.status(403).send(err);
             return;
          }
-
-         console.log(data);
-
          req._id = data._id;
          req.isAdmin = data.isAdmin;
-         if(req.method == "PUT" || req.method == "DELETE") if(req.isAdmin == false) res.status(403).send("Unauthorize");
+         if(req.method == "PUT" || req.method == "DELETE") if(req.isAdmin == false) res.status(403).send(err);
          return next();
       })
    }
-
-   res.status(403).send("Unauthorize");
+   else res.status(403).send("Unauthorize JWT");
 })
 
 
 router.get("/",(req,res) => {
-	console.log(req.userID);
+	console.log(req._id);
    res.send({
-      _id : req.userID,
+      _id : req._id,
       isAdmin : req.isAdmin
    });
 })
@@ -222,7 +217,7 @@ router.put("/product/:id", (req,res) => {
 
 //ORDER
 router.get("/order", (req,res) => {
-   db.collection('order').find({user : req.userID}).toArray((err, result) => {
+   db.collection('order').find({user : req._id}).toArray((err, result) => {
       if(err) {
          res.status(500).send(err);
       }
@@ -233,7 +228,7 @@ router.get("/order", (req,res) => {
 
 router.get("/order/:id", (req,res) => {
    db.collection('order').find({
-      user : req.userID, 
+      user : req._id, 
       _id : ObjectId(req.params.id)}).toArray((err,result) => {
       if(err) {
          res.status(500).send(err);
@@ -253,7 +248,7 @@ router.post("/order/create", (req,res) => {
       phone : req.body.phone,
       status : "On delivery",
       totalPrice : req.body.totalPrice,
-      user : req.userID,
+      user : req._id,
       dateOrdered : new Date()
    })
    .then(result => {
@@ -378,7 +373,7 @@ router.post("/login", (req,res) => {
                   return
                }
                else {
-                  req.userID = result[0]._id;
+                  req._id = result[0]._id;
                   req.isAdmin = result[0].isAdmin;
                   const token = jwt.sign({_id : result[0]._id, isAdmin : result[0].isAdmin}, process.env.SECRET);
                   res.send(token);
@@ -396,11 +391,12 @@ router.post("/login", (req,res) => {
 })
 
 router.get("/token", (req,res) => {
-   db.collection('user').find({_id : req.userID}).toArray((err, result) => {
+   db.collection('user').find({_id : ObjectId(req._id)}).toArray((err, result) => {
       if(err) res.status(500).send(err);
       result[0].passwordHash = undefined;
       res.send(result[0]);
    })
 })
+
 
 module.exports = router;
