@@ -126,7 +126,7 @@ router.delete("/category/:id", (req,res) => {
 })
 
 router.put("/category/:id", (req,res) => {
-   db.collection('category').updateOne({
+   db.collection('category').update({
       _id : ObjectId(req.params.id)
    }, {
       name : req.body.name,
@@ -197,7 +197,7 @@ router.delete("/product/:id", (req,res) => {
 })
 
 router.put("/product/:id", (req,res) => {
-   db.collection('product').updateOne({
+   db.collection('product').update({
       _id : ObjectId(req.params.id)
    }, {
       name : req.body.name,
@@ -268,7 +268,7 @@ router.delete("/order/:id", (req,res) => {
 })
 
 router.put("/order/:id", (req,res) => {
-   db.collection('order').updateOne({
+   db.collection('order').update({
       _id : ObjectId(req.params.id)
    }, {
       orderItems : req.body.orderItems,
@@ -420,7 +420,7 @@ router.put("/user/password", (req,res) => {
          bcrypt.hash(req.body.newPassword, 12, (err,hash) => {
             if(err) res.status(500).send(err);
 
-            db.collection('user').updateOne({
+            db.collection('user').update({
                _id : ObjectId(req._id)
             }, {
                passwordHash : hash
@@ -435,7 +435,7 @@ router.put("/user/password", (req,res) => {
 })
 
 router.put("/user/info", (req,res) => {
-   db.collection('user').updateOne({
+   db.collection('user').update({
       _id : ObjectId(req._id)
    }, {
       name : req.body.name,
