@@ -53,7 +53,10 @@ router.use((req,res,next) => {
          }
          req._id = data._id;
          req.isAdmin = data.isAdmin;
-         if((req.method == "PUT" && req.url != "/user") || req.method == "DELETE") if(req.isAdmin == false) res.status(403).send(err);
+         if((req.method == "PUT" && !req.url.startsWith("/user")) || req.method == "DELETE") if(req.isAdmin == false) {
+            res.status(403).send(err);
+            return;
+         }
          return next();
       })
    }
@@ -224,6 +227,7 @@ router.get("/order", (req,res) => {
    db.collection('order').find({user : req._id}).toArray((err, result) => {
       if(err) {
          res.status(500).send(err);
+         return;
       }
 
       res.send(result);
@@ -236,6 +240,7 @@ router.get("/order/:id", (req,res) => {
       _id : ObjectId(req.params.id)}).toArray((err,result) => {
       if(err) {
          res.status(500).send(err);
+         return
       }
       res.send(result);
    })
@@ -305,7 +310,10 @@ router.get("/user/:id", (req,res) => {
    db.collection('user').find({
       _id:ObjectId(req.params.id)
    }).toArray((err,result) => {
-      if(err) res.status(500).send(err);
+      if(err) {
+         res.status(500).send(err);
+         return
+      }
       res.send(result);
    })
 })
@@ -334,7 +342,7 @@ router.post("/signup", (req,res) => {
             name : req.body.name,
             email : req.body.email,
             passwordHash : hash,
-            street : req.body.street,
+            address : req.body.address,
             city : req.body.city,
             phone : req.body.phone,
             isAdmin : false
@@ -420,16 +428,18 @@ router.put("/user/password", (req,res) => {
             return
          }
          if(result == false) {
-            res.send("Wrong password")
+            res.status(403).send("Wrong password")
             return
          }
          bcrypt.hash(req.body.newPassword, 12, (err,hash) => {
-            if(err) res.status(500).send(err);
+            if(err) {res.status(500).send(err);return}
 
             db.collection('user').update({
                _id : ObjectId(req._id)
             }, {
-               passwordHash : hash
+               $set : {
+                  passwordHash : hash
+               }
             })
             .then(result => {
                res.send(result);
