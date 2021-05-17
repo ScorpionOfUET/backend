@@ -129,10 +129,12 @@ router.put("/category/:id", (req,res) => {
    db.collection('category').update({
       _id : ObjectId(req.params.id)
    }, {
-      name : req.body.name,
-      color : req.body.color,
-      icon : req.body.icon,
-      image : imageProcesser(req.body.image)
+      $set : {
+         name : req.body.name,
+         color : req.body.color,
+         icon : req.body.icon,
+         image : imageProcesser(req.body.image)
+      }
    })
    .then(result => res.send(result))
    .catch(err => res.status(500).send(err));
@@ -200,18 +202,20 @@ router.put("/product/:id", (req,res) => {
    db.collection('product').update({
       _id : ObjectId(req.params.id)
    }, {
-      name : req.body.name,
-      description : req.body.description,
-      richDescription : req.body.richDescription,
-      image : imageProcesser(req.body.image),
-      images : imagesProceser(req.body.images),
-      brand : req.body.brand,
-      price : req.body.price,
-      category : req.body.category,
-      countInStock: req.body.countInStock,
-      rating : 0,
-      isFeatured : req.body.isFeatured,
-      dateCreated : new Date()
+      $set: {
+         name : req.body.name,
+         description : req.body.description,
+         richDescription : req.body.richDescription,
+         image : imageProcesser(req.body.image),
+         images : imagesProceser(req.body.images),
+         brand : req.body.brand,
+         price : req.body.price,
+         category : req.body.category,
+         countInStock: req.body.countInStock,
+         rating : 0,
+         isFeatured : req.body.isFeatured,
+         dateCreated : new Date()
+      }
    })
 })
 
@@ -271,15 +275,17 @@ router.put("/order/:id", (req,res) => {
    db.collection('order').update({
       _id : ObjectId(req.params.id)
    }, {
-      orderItems : req.body.orderItems,
-      shippingAddress1 : req.body.shippingAddress1,
-      shippingAddress2 : req.body.shippingAddress2,
-      city : req.body.city,
-      zip : req.body.zip,
-      country : req.body.country,
-      phone : req.body.phone,
-      status : req.body.status,
-      totalPrice : req.body.totalPrice
+      $set: {
+         orderItems : req.body.orderItems,
+         shippingAddress1 : req.body.shippingAddress1,
+         shippingAddress2 : req.body.shippingAddress2,
+         city : req.body.city,
+         zip : req.body.zip,
+         country : req.body.country,
+         phone : req.body.phone,
+         status : req.body.status,
+         totalPrice : req.body.totalPrice
+      }
    })
    .then(result => {
       res.send(result);
@@ -438,10 +444,12 @@ router.put("/user/info", (req,res) => {
    db.collection('user').update({
       _id : ObjectId(req._id)
    }, {
-      name : req.body.name,
-      address : req.body.address,
-      city : req.body.city,
-      phone : req.body.phone,
+      $set:{
+         name : req.body.name,
+         address : req.body.address,
+         city : req.body.city,
+         phone : req.body.phone
+      }
    })
    .then(result => {
       res.send(result);
