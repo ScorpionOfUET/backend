@@ -19,6 +19,7 @@ client.connect(err => {
 var Product = require('./schemas/Product');
 
 function imageProcesser(image) {
+   console.log(image);
    return image;
 }
 
