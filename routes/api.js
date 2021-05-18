@@ -253,12 +253,10 @@ router.post("/order/create", (req,res) => {
       shippingAddress1 : req.body.shippingAddress1,
       shippingAddress2 : req.body.shippingAddress2,
       city : req.body.city,
-      zip : req.body.zip,
-      country : req.body.country,
       phone : req.body.phone,
       status : "On delivery",
       totalPrice : req.body.totalPrice,
-      user : req._id,
+      user_id : req._id,
       dateOrdered : new Date()
    })
    .then(result => {
@@ -286,10 +284,8 @@ router.put("/order/:id", (req,res) => {
          shippingAddress1 : req.body.shippingAddress1,
          shippingAddress2 : req.body.shippingAddress2,
          city : req.body.city,
-         zip : req.body.zip,
-         country : req.body.country,
          phone : req.body.phone,
-         status : req.body.status,
+         status : "On delivery",
          totalPrice : req.body.totalPrice
       }
    })
@@ -421,7 +417,7 @@ router.get("/token", (req,res) => {
 
 router.put("/user/password", (req,res) => {
    db.collection('user').find({_id : ObjectId(req._id)}).toArray((err,result) => {
-      if(err) res.status(500).send(err);
+      if(err) {res.status(500).send(err); return}
       var user = result[0];
       bcrypt.compare(req.body.oldPassword, user.passwordHash, (err,result) => {
          if(err) {
