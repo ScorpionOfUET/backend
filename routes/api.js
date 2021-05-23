@@ -464,7 +464,7 @@ router.put("/user/info", (req,res) => {
    .catch(err => res.status(500).send(err));
 })
 
-router.delete("/user/:id", (req,res) = >{
+router.delete("/user/:id", (req,res) =>{
    db.collection('user').delete({
       _id : ObjectId(req.params.id)
    })
