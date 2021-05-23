@@ -225,7 +225,7 @@ router.put("/product/:id", (req,res) => {
 
 //ORDER
 router.get("/order", (req,res) => {
-   db.collection('order').find({user : req._id}).toArray((err, result) => {
+   db.collection('order').find({userID : req._id}).toArray((err, result) => {
       if(err) {
          res.status(500).send(err);
          return;
@@ -237,7 +237,7 @@ router.get("/order", (req,res) => {
 
 router.get("/order/:id", (req,res) => {
    db.collection('order').find({
-      user : req._id, 
+      userID : req._id, 
       _id : ObjectId(req.params.id)}).toArray((err,result) => {
       if(err) {
          res.status(500).send(err);
@@ -256,7 +256,7 @@ router.post("/order/create", (req,res) => {
       phone : req.body.phone,
       status : "On delivery",
       totalPrice : req.body.totalPrice,
-      user_id : req._id,
+      userID : req._id,
       dateOrdered : new Date()
    })
    .then(result => {
@@ -285,7 +285,7 @@ router.put("/order/:id", (req,res) => {
          shippingAddress2 : req.body.shippingAddress2,
          city : req.body.city,
          phone : req.body.phone,
-         status : "On delivery",
+         status : req.body.status,
          totalPrice : req.body.totalPrice
       }
    })
@@ -460,6 +460,22 @@ router.put("/user/info", (req,res) => {
    })
    .then(result => {
       res.send(result);
+   })
+   .catch(err => res.status(500).send(err));
+})
+
+router.delete("/user/:id", (req,res) = >{
+   db.collection('user').delete({
+      _id : ObjectId(req.params.id)
+   })
+   .then(rseult => {
+      db.collection('order').delete({
+         userID : req.params.id
+      })
+      .then(result => {
+         res.send("Done");
+      })
+      .catch(err => res.status(500).send(err));
    })
    .catch(err => res.status(500).send(err));
 })
