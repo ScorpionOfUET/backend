@@ -465,11 +465,11 @@ router.put("/user/info", (req,res) => {
 })
 
 router.delete("/user/:id", (req,res) =>{
-   db.collection('user').delete({
+   db.collection('user').deleteOne({
       _id : ObjectId(req.params.id)
    })
    .then(rseult => {
-      db.collection('order').delete({
+      db.collection('order').deleteMany({
          userID : req.params.id
       })
       .then(result => {
