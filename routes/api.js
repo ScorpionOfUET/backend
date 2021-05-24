@@ -225,19 +225,17 @@ router.put("/product/:id", (req,res) => {
 
 //ORDER
 router.get("/order", (req,res) => {
-   db.collection('order').find({user : req._id}).toArray((err, result) => {
+   db.collection('order').find({}).toArray((err, result) => {
       if(err) {
          res.status(500).send(err);
          return;
       }
-
       res.send(result);
    })
 })
 
 router.get("/order/:id", (req,res) => {
    db.collection('order').find({
-      user : req._id, 
       _id : ObjectId(req.params.id)}).toArray((err,result) => {
       if(err) {
          res.status(500).send(err);
@@ -248,19 +246,41 @@ router.get("/order/:id", (req,res) => {
 })
 
 router.post("/order/create", (req,res) => {
+   var price = 0;
+   var products = req.body.products
+   for(var i = 0 ;i<products.length; i++) {
+      price += products[i].product.price * products[i].quantity
+      var leftQuantity = products[i].product.countInStock - products[i].quantity
+      products[i] = {
+         product : products[i].product._id,
+         quantity : products[i].quantity
+      }
+
+      db.collection('product').update({_id : products[i].product}, {
+         $set: {
+            countInStock : leftQuantity
+         }
+      })
+      .catch(err => {
+         console.log(err);
+      })
+   }
    db.collection('order').insert({
-      orderItems : req.body.orderItems,
+      products : products,
       shippingAddress1 : req.body.shippingAddress1,
       shippingAddress2 : req.body.shippingAddress2,
       city : req.body.city,
       phone : req.body.phone,
-      status : "On delivery",
-      totalPrice : req.body.totalPrice,
+      status : req.body.status,
+      totalPrice : price,
       user : req._id,
       dateOrdered : new Date()
    })
    .then(result => {
-      res.send(result);
+      db.collection('order').find({_id : ObjectId(result.ops[0]._id)}).toArray((err,result) => {
+         if(err) return;
+         res.send(result);
+      })
    })
    .catch(err => res.status(500).send(err));
 })
@@ -280,13 +300,7 @@ router.put("/order/:id", (req,res) => {
       _id : ObjectId(req.params.id)
    }, {
       $set: {
-         orderItems : req.body.orderItems,
-         shippingAddress1 : req.body.shippingAddress1,
-         shippingAddress2 : req.body.shippingAddress2,
-         city : req.body.city,
-         phone : req.body.phone,
-         status : req.body.status,
-         totalPrice : req.body.totalPrice
+         status : req.body.status
       }
    })
    .then(result => {
