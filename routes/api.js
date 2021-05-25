@@ -172,7 +172,7 @@ const storage = multer.diskStorage({
         if (isValid) {
             uploadError = null;
         }
-        cb(uploadError, path.join(__dirname, '../public/upload'));
+        cb(uploadError, path.join(__dirname, '../static/upload'));
     },
     filename: function (req, file, cb) {
         const fileName = file.originalname.split(' ').join('-');
@@ -187,7 +187,7 @@ router.post("/product/create", uploadOptions.single('image'),(req,res) => {
    const file = req.file;
    if (!file) return res.status(400).send('No image in the request');
    const fileName = file.filename;
-   const basePath = `${req.protocol}://${req.get('host')}/public/upload/` + fileName;
+   const basePath = `${req.protocol}://${req.get('host')}/static/upload/` + fileName;
    db.collection('product').insert({
       name : req.body.name,
       description : req.body.description,
