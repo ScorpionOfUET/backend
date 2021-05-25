@@ -16,22 +16,36 @@ client.connect(err => {
    console.log("Connected");
 });
 
-var Product = require('./schemas/Product');
+const multer = require('multer');
 
+const FILE_TYPE_MAP = {
+    'image/png': 'png',
+    'image/jpeg': 'jpeg',
+    'image/jpg': 'jpg',
+};
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const isValid = FILE_TYPE_MAP[file.mimetype];
+        let uploadError = new Error('invalid image type');
+
+        if (isValid) {
+            uploadError = null;
+        }
+        cb(uploadError, 'public/upload');
+    },
+    filename: function (req, file, cb) {
+        const fileName = file.originalname.split(' ').join('-');
+        const extension = FILE_TYPE_MAP[file.mimetype];
+        cb(null, `${fileName}-${Date.now()}.${extension}`);
+    },
+});
+
+const uploadOptions = multer({ storage: storage });
 function imageProcesser(image) {
    console.log(image);
    return image;
 }
-
-function imagesProceser(images) {
-   for(var i = 0;i < images.length;i++) images[i] = imageProcesser(images[i]);
-   return images;
-} 
-
-function cleanUp() {
-
-}
-
 // Main
 var noAuthPath = ['POST /signup', 'GET /product', 'GET /category', 'POST /login'];
 var adminOnly = [];
@@ -168,14 +182,17 @@ router.get("/product/:id", (req,res) => {
    })
 })
 
-router.post("/product/create", (req,res) => {
+router.post("/product/create", uploadOptions.single('image'),(req,res) => {
    console.log(req.body.image);
+   const file = req.file;
+   if (!file) return res.status(400).send('No image in the request');
+   const fileName = file.filename;
+   const basePath = `${req.protocol}://${req.get('host')}/public/upload/` + fileName;
    db.collection('product').insert({
       name : req.body.name,
       description : req.body.description,
       richDescription : req.body.richDescription,
-      image : imageProcesser(req.body.image),
-      images : imagesProceser(req.body.images),
+      image : basePath,
       brand : req.body.brand,
       price : req.body.price,
       category : req.body.category,
