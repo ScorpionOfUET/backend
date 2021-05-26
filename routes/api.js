@@ -38,12 +38,15 @@ router.use((req,res,next) => {
       jwt.verify(jwtToken, process.env.SECRET, (err,data) => {
          if(err) {
             res.status(403).send(err);
+            console.log(err);
             return;
          }
          req._id = data._id;
          req.isAdmin = data.isAdmin;
+         console.log(data);
          if((req.method == "PUT" && !req.url.startsWith("/user")) || req.method == "DELETE") if(req.isAdmin == false) {
-            res.status(403).send(err);
+            res.status(403).send("Unauthorize");
+            console.log("Unauthorize");
             return;
          }
          return next();
@@ -118,7 +121,7 @@ router.delete("/category/:id", (req,res) => {
 })
 
 router.put("/category/:id", (req,res) => {
-   db.collection('category').update({
+   db.collection('category').updateOne({
       _id : ObjectId(req.params.id)
    }, {
       $set : {
@@ -220,23 +223,24 @@ router.delete("/product/:id", (req,res) => {
 })
 
 router.put("/product/:id", (req,res) => {
-   db.collection('product').update({
+   db.collection('product').updateOne({
       _id : ObjectId(req.params.id)
    }, {
       $set: {
          name : req.body.name,
          description : req.body.description,
-         richDescription : req.body.richDescription,
-         image : imageProcesser(req.body.image),
-         images : imagesProceser(req.body.images),
          brand : req.body.brand,
          price : req.body.price,
          category : req.body.category,
          countInStock: req.body.countInStock,
-         rating : 0,
-         isFeatured : req.body.isFeatured,
-         dateCreated : new Date()
+         isFeatured : req.body.isFeatured
       }
+   })
+   .then(result => {
+      res.send(result);
+   })
+   .catch(err => {
+      res.status(500).send(err);
    })
 })
 
@@ -273,7 +277,7 @@ router.post("/order/create", (req,res) => {
          quantity : products[i].quantity
       }
 
-      db.collection('product').update({_id : products[i].product}, {
+      db.collection('product').updateOne({_id : products[i].product}, {
          $set: {
             countInStock : leftQuantity
          }
@@ -313,7 +317,7 @@ router.delete("/order/:id", (req,res) => {
 })
 
 router.put("/order/:id", (req,res) => {
-   db.collection('order').update({
+   db.collection('order').updateOne({
       _id : ObjectId(req.params.id)
    }, {
       $set: {
@@ -462,7 +466,7 @@ router.put("/user/password", (req,res) => {
          bcrypt.hash(req.body.newPassword, 12, (err,hash) => {
             if(err) {res.status(500).send(err);return}
 
-            db.collection('user').update({
+            db.collection('user').updateOne({
                _id : ObjectId(req._id)
             }, {
                $set : {
@@ -479,7 +483,7 @@ router.put("/user/password", (req,res) => {
 })
 
 router.put("/user/info", (req,res) => {
-   db.collection('user').update({
+   db.collection('user').updateOne({
       _id : ObjectId(req._id)
    }, {
       $set:{
