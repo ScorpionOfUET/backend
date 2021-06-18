@@ -424,7 +424,15 @@ router.post("/login", (req,res) => {
                else {
                   req._id = result[0]._id;
                   req.isAdmin = result[0].isAdmin;
-                  const token = jwt.sign({_id : result[0]._id, isAdmin : result[0].isAdmin}, process.env.SECRET);
+                  const token = jwt.sign({
+                     _id : result[0]._id, 
+                     isAdmin : result[0].isAdmin,
+                     name : result[0].name,
+                     email : result[0].email,
+                     address : result[0].address,
+                     city : result[0].city,
+                     phone : result[0].phone
+                  }, process.env.SECRET);
                   res.send(token);
                   return;
                }
